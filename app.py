@@ -5,9 +5,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.middleware.base import BaseHTTPMiddleware
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.ext.declarative import declarative_base
 import os
 import uuid
 from datetime import datetime, timedelta
@@ -18,7 +15,8 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from pydantic import BaseModel
-import models
+from database import get_db, Base  # Import from database.py
+import models  # Import after Base
 from middleware import AnalyticsMiddleware
 from routes.auth import router as auth_router
 from routes.api import router as api_router
@@ -27,14 +25,8 @@ from routes.frontend import router as frontend_router
 
 # Env vars
 SECRET_KEY = os.getenv("SECRET_KEY", str(uuid.uuid4()))
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/dataforge")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
-# Database setup
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
 
 # FastAPI app
 app = FastAPI(title="DataForge API")
@@ -62,14 +54,6 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 # Apply middleware
 app.add_middleware(AnalyticsMiddleware)
 
-# Dependency for DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 # JWT utils
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -88,7 +72,7 @@ def create_access_token(data: dict):
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
     request: Request = None,
-    db: Session = Depends(get_db)
+    db = Depends(get_db)
 ):
     token = None
     if credentials:
@@ -110,7 +94,7 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="Invalid token")
 
 # API key auth for external
-async def api_key_auth(request: Request, db: Session = Depends(get_db)):
+async def api_key_auth(request: Request, db = Depends(get_db)):
     auth = request.headers.get("Authorization")
     if not auth or not auth.startswith("Bearer "):
         raise HTTPException(status_code=403, detail="Authorization required")
