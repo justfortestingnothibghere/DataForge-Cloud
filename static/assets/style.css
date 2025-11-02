@@ -1,0 +1,96 @@
+body {
+    background: linear-gradient(135deg, #1e3a8a, #6b21a8);
+    animation: gradient 15s ease infinite;
+    background-size: 400% 400%;
+    font-family: 'Orbitron', monospace;
+}
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.animate-glow {
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0073e6; }
+    to { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #0073e6; }
+}
+
+.cube {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: rotate 10s infinite linear;
+    margin: 0 auto;
+}
+
+.cube::before, .cube::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    border: 2px solid #00ffcc;
+    box-shadow: 0 0 20px #00ffcc;
+}
+
+.cube::before { transform: rotateY(90deg) translateZ(50px); }
+.cube::after { transform: rotateX(90deg) translateZ(50px); }
+
+@keyframes rotate {
+    0% { transform: rotateX(0) rotateY(0); }
+    100% { transform: rotateX(360deg) rotateY(360deg); }
+}
+
+.animate-border-glow {
+    border: 2px solid transparent;
+    animation: border-glow 2s infinite alternate;
+}
+
+@keyframes border-glow {
+    from { border-color: #0073e6; box-shadow: 0 0 10px #0073e6; }
+    to { border-color: #e600ff; box-shadow: 0 0 20px #e600ff; }
+}
+
+.cube-card, .hologram-card {
+    perspective: 1000px;
+    transform-style: preserve-3d;
+}
+
+.cube-card:hover, .hologram-card:hover {
+    transform: rotateY(10deg) rotateX(10deg) scale(1.05);
+    box-shadow: 0 0 30px #00ffcc;
+}
+
+.particles::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+                      radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                      radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+                      radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+                      radial-gradient(2px 2px at 160px 30px, #ddd, transparent);
+    background-repeat: repeat;
+    background-size: 200px 100px;
+    animation: particles 20s linear infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+
+@keyframes particles {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(-100px) rotate(360deg); }
+}
+
+.bg-yellow-500 { background-color: #FFD700; color: #000; }
+.bg-yellow-700 { background-color: #DAA520; }
