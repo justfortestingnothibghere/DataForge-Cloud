@@ -2,7 +2,6 @@ from fastapi import HTTPException, status, Request, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 import jwt
-import uuid
 from passlib.context import CryptContext
 from bcrypt import hashpw, gensalt, checkpw
 import os
@@ -67,5 +66,5 @@ async def api_key_auth(request: Request, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.api_key == api_key).first()
     if not user:
         raise HTTPException(status_code=403, detail="Invalid API key")
-    request.state.user = user  # Store for middleware
+    request.state.user_id = user.id  # Store user_id for middleware
     return user
