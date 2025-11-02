@@ -2,6 +2,7 @@ from fastapi import HTTPException, status, Request, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 import jwt
+import uuid
 from passlib.context import CryptContext
 from bcrypt import hashpw, gensalt, checkpw
 import os
