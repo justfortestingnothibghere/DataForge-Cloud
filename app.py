@@ -2,14 +2,13 @@ from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 from database import Base, get_db
 import models  # Import after Base
 from middleware import AnalyticsMiddleware
 from utils import limiter
-from config import templates  # Import templates from config
+from config import templates
 from routes.auth import router as auth_router
 from routes.api import router as api_router
 from routes.admin import router as admin_router
@@ -36,7 +35,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Apply middleware
-app.add_middleware(AnalyticsMiddleware)
+app.add_middleware(AnalyticsMiddleware)  # Correctly register the middleware
 
 # Include routers
 app.include_router(auth_router, prefix="/auth")
