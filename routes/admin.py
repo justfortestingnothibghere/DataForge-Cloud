@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import os
 import glob
-from ..app import get_db, get_current_user
-from ..models import User, Upload
+from app import get_db, get_current_user
+from models import User, Upload
 
 router = APIRouter()
 
@@ -34,7 +34,6 @@ def delete_user(user_id: int, current_user: User = Depends(get_current_user), db
         raise HTTPException(status_code=403)
     user = db.query(User).filter(User.id == user_id).first()
     if user:
-        # Delete uploads
         uploads = db.query(Upload).filter(Upload.user_id == user_id).all()
         for u in uploads:
             if u.file_url:
