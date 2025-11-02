@@ -6,8 +6,8 @@ import glob
 from datetime import datetime, timedelta
 import zipfile
 from io import BytesIO
-from ..app import get_db, get_current_user, api_key_auth
-from ..models import Upload, User
+from app import get_db, get_current_user, api_key_auth
+from models import Upload, User, Analytics
 
 router = APIRouter()
 
@@ -65,6 +65,12 @@ async def upload(
     db.add(new_upload)
     db.commit()
     db.refresh(new_upload)
+    # Log to analytics
+    details = json.dumps({"upload_id": new_upload.id, "type": type_})
+    db.add(Analytics(user_id=current_user.id, event_type="upload", details=details))
+    db.commit()
+    # WS notification
+    # Simulate broadcast (requires connected clients store)
     return {
         "success": True,
         "item_id": new_upload.id,
@@ -92,7 +98,7 @@ async def get_upload(
     if upload.type == "text":
         response["content"] = upload.content
     else:
-        response["file_url"] = f"/{upload.file_url}"  # Relative for domain
+        response["file_url"] = f"/{upload.file_url}"
     return response
 
 @router.get("/share/{item_id}")
@@ -100,11 +106,9 @@ def get_shared(item_id: int, token: str = Query(...), db: Session = Depends(get_
     upload = db.query(Upload).filter(Upload.id == item_id, Upload.share_token == token).first()
     if not upload or (upload.share_expires_at and upload.share_expires_at < datetime.utcnow()):
         raise HTTPException(404, "Share link invalid or expired")
-    # Return file or content
     if upload.type == "text":
         return {"content": upload.content}
-    else:
-        return FileResponse(upload.file_url, filename=f"shared_{item_id}")
+    return FileResponse(upload.file_url, filename=f"shared_{item_id}{os.path.splitext(upload.file_url)[1]}")
 
 @router.delete("/delete/{item_id}")
 def delete_upload(
@@ -124,12 +128,16 @@ def delete_upload(
 @router.get("/analytics")
 def get_analytics(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     uploads_count = db.query(Upload).filter(Upload.user_id == current_user.id).count()
-    analytics = db.query(models.Analytics).filter(models.Analytics.user_id == current_user.id).all()
+    analytics = db.query(Analytics).filter(Analytics.user_id == current_user.id).all()
     storage_used = sum(os.path.getsize(f) for f in glob.glob(f"uploads/*_{current_user.id}_*") if os.path.exists(f))
+    # Sample data for chart
+    labels = [a.event_type for a in analytics[-10:]]
+    counts = [1 for _ in labels]  # Dummy counts
     return {
         "uploads_count": uploads_count,
         "storage_used": storage_used,
-        "events": [a.event_type for a in analytics[-10:]]  # Last 10
+        "labels": labels,
+        "datasets": [{"data": counts}]
     }
 
 @router.get("/export")
