@@ -5,12 +5,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 import os
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
 from database import Base, get_db
 import models  # Import after Base
 from middleware import AnalyticsMiddleware
+from utils import limiter  # Import limiter from utils
 from routes.auth import router as auth_router
 from routes.api import router as api_router
 from routes.admin import router as admin_router
@@ -20,7 +20,6 @@ from routes.frontend import router as frontend_router
 app = FastAPI(title="DataForge API")
 
 # Rate limiting
-limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
