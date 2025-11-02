@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DataForge 💀{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/assets/style.css">
+</head>
+<body class="bg-gradient-to-br from-blue-900 to-purple-900 min-h-screen text-white font-orbitron">
+    <nav class="p-4 flex justify-between items-center">
+        <a href="/" class="text-2xl animate-glow">💀 DataForge</a>
+        <div class="space-x-4">
+            {% if user %}
+            <span>Welcome, {{ user.username }}!</span>
+            <a href="/dashboard">Dashboard</a>
+            {% if user.is_admin %}<a href="/admin">Admin</a>{% endif %}
+            <a href="/guide">Guide</a>
+            <a href="/user-docs">Docs</a>
+            <a href="/logout">Logout</a>
+            {% else %}
+            <a href="/login">Login</a>
+            <a href="/signup">Signup</a>
+            {% endif %}
+        </div>
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <script src="/static/assets/scripts.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

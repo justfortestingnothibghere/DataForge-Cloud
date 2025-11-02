@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Login - DataForge{% endblock %}
+{% block content %}
+<div class="flex items-center justify-center min-h-screen p-8">
+    <form method="post" class="bg-black bg-opacity-50 p-8 rounded-lg shadow-lg backdrop-blur-md max-w-md w-full transform hover:scale-105 transition-transform">
+        <h2 class="text-3xl mb-6 text-center animate-glow">Login</h2>
+        {% if error %}<p class="text-red-300 mb-4 text-center">{{ error }}</p>{% endif %}
+        <input type="text" name="username" placeholder="Username" required class="w-full p-2 mb-4 bg-transparent border border-blue-500 rounded focus:outline-none focus:border-purple-500">
+        <input type="password" name="password" placeholder="Password" required class="w-full p-2 mb-4 bg-transparent border border-blue-500 rounded focus:outline-none focus:border-purple-500">
+        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white py-2 rounded transition-transform transform hover:rotate-3">Login</button>
+        <a href="/" class="text-sm text-purple-300 mt-2 block text-center">Back to Welcome</a>
+    </form>
+</div>
+{% endblock %}

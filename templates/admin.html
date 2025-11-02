@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Admin - DataForge{% endblock %}
+{% block content %}
+<div class="p-8 max-w-6xl mx-auto">
+    <h1 class="text-4xl mb-8 text-center animate-glow">💀 Admin Control Center</h1>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="hologram-card bg-black bg-opacity-50 p-4 rounded text-center">
+            <h4 class="text-lg">Total Users</h4>
+            <p class="text-2xl">{{ stats.total_users }}</p>
+        </div>
+        <div class="hologram-card bg-black bg-opacity-50 p-4 rounded text-center">
+            <h4 class="text-lg">Total Uploads</h4>
+            <p class="text-2xl">{{ stats.total_uploads }}</p>
+        </div>
+        <div class="hologram-card bg-black bg-opacity-50 p-4 rounded text-center">
+            <h4 class="text-lg">Storage Used</h4>
+            <p class="text-2xl">{{ stats.total_storage_gb }} GB</p>
+        </div>
+    </div>
+    <div class="mb-8 bg-black bg-opacity-50 p-6 rounded-lg shadow-lg backdrop-blur-md">
+        <h3 class="text-xl mb-4 animate-glow">User Distribution</h3>
+        <canvas id="analyticsChart" width="400" height="200"></canvas>
+    </div>
+    <div class="space-y-4">
+        <h3 class="text-xl animate-glow">Users List</h3>
+        {% for u in users %}
+        <div class="flex justify-between items-center bg-black bg-opacity-50 p-4 rounded">
+            <span>{{ u.username }} ({{ u.uploads|length }} uploads, Premium: {{ 'Yes' if u.is_premium else 'No' }})</span>
+            <form method="post" action="/admin/delete/{{ u.id }}" onsubmit="return confirm('Delete user {{ u.username }}?')">
+                <button type="submit" class="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded">Delete</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    <a href="/export" class="block mt-8 bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded text-center">Export All Data (Admin)</a>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    const ctx = document.getElementById('analyticsChart');
+    new Chart(ctx, {
+        type: 'pie',
+        data: {{ analytics|tojson|safe }}
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - DataForge{% endblock %}
+{% block content %}
+<div class="p-8 max-w-6xl mx-auto">
+    <h1 class="text-4xl mb-8 text-center animate-glow">💀 DataForge Dashboard</h1>
+    <div class="mb-4 bg-black bg-opacity-50 p-4 rounded">
+        API Key: {{ user.api_key }} <button onclick="copyKey('{{ user.api_key }}')" class="bg-blue-500 px-2 py-1 rounded ml-2">Copy</button>
+    </div>
+
+    <!-- Analytics -->
+    <div id="analytics" class="mb-8 bg-black bg-opacity-50 p-6 rounded-lg shadow-lg backdrop-blur-md">
+        <h3 class="text-xl mb-4 animate-glow">Analytics 💀</h3>
+        <canvas id="userChart" width="400" height="200"></canvas>
+        <p class="mt-4">Storage Used: {{ "%.2f"|format(storage_used / (1024**3)) }} GB {% if not user.is_premium %}/ 1GB (Free){% else %}(Unlimited Premium!){% endif %}</p>
+        {% if not user.is_premium %}
+        <button onclick="upgrade()" class="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-2 rounded mt-2">Go Premium ₹199 - WhatsApp +91 8011971924</button>
+        {% endif %}
+    </div>
+
+    <!-- Real-time Logs -->
+    <div id="realtime" class="mb-8 p-4 bg-black bg-opacity-50 rounded">
+        <h4 class="animate-glow">Live Activity Logs</h4>
+        <ul id="logList" class="mt-2 space-y-1"></ul>
+    </div>
+
+    <!-- Upload Form -->
+    <form id="uploadForm" class="mb-8 bg-black bg-opacity-50 p-6 rounded-lg shadow-lg backdrop-blur-md animate-border-glow">
+        <select name="type" id="type" class="w-full p-2 mb-4 bg-transparent border border-blue-500 rounded">
+            <option value="text">Text</option>
+            <option value="image">Image</option>
+            <option value="video">Video</option>
+            <option value="document">Document</option>
+        </select>
+        <textarea name="content" id="content" placeholder="Text content (for text type)" class="w-full p-2 mb-4 bg-transparent border border-blue-500 rounded hidden"></textarea>
+        <input type="file" name="file" id="file" multiple class="w-full p-2 mb-4 bg-transparent border border-blue-500 rounded hidden">
+        <label class="block mb-2 text-sm font-medium">Share publicly? (24h default)</label>
+        <input type="checkbox" name="share" id="share">
+        <button type="button" onclick="submitUpload()" class="w-full bg-purple-500 hover:bg-purple-700 text-white py-2 rounded mt-4 transition-transform transform hover:scale-105">Upload</button>
+    </form>
+
+    <!-- Search -->
+    <input type="text" id="search" placeholder="Search uploads..." class="w-full p-2 mb-4 bg-transparent border border-blue-500 rounded">
+
+    <!-- Uploads Grid -->
+    <div id="uploadsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for upload in uploads %}
+        <div class="bg-black bg-opacity-50 p-4 rounded-lg shadow-lg backdrop-blur-md transform hover:rotate-6 hover:scale-105 transition-transform cube-card">
+            <p><strong>Type:</strong> {{ upload.type }}</p>
+            <p><strong>Created:</strong> {{ upload.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            {% if upload.type == 'text' %}
+            <p class="mt-2">{{ upload.content[:100] }}{% if upload.content|length > 100 %}...{% endif %}</p>
+            {% else %}
+            <a href="/{{ upload.file_url }}" target="_blank" class="text-blue-300">Preview</a>
+            {% endif %}
+            <p class="mt-2"><a href="/api/v2/{{ user.username }}?uploads={{ upload.id }}" target="_blank" class="text-purple-300">API Link</a></p>
+            {% if upload.share_token %}<p class="text-green-300">Share Link: /api/share/{{ upload.id }}?token={{ upload.share_token }}</p>{% endif %}
+            <form method="post" action="/api/delete/{{ upload.id }}" class="mt-2 inline" onsubmit="return confirm('Delete?')">
+                <button type="submit" class="bg-red-500 px-2 py-1 rounded">Delete</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="/static/assets/charts.js"></script>
+<script>
+    // Analytics Chart
+    const ctx = document.getElementById('userChart');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {{ analytics|tojson|safe }}
+    });
+
+    // WebSocket
+    const ws = new WebSocket(`ws://${window.location.host}/ws/logs`);
+    ws.onopen = () => ws.send('Connected to dashboard');
+    ws.onmessage = (event) => {
+        const li = document.createElement('li');
+        li.className = 'text-sm opacity-75';
+        li.textContent = event.data;
+        document.getElementById('logList').prepend(li);
+    };
+
+    function copyKey(key) {
+        navigator.clipboard.writeText(key).then(() => alert('Copied!'));
+    }
+
+    function upgrade() {
+        window.open('https://wa.me/918011971924?text=Hi, I want DataForge Premium for ₹199!');
+    }
+
+    // Upload handling
+    document.getElementById('type').addEventListener('change', (e) => {
+        const isText = e.target.value === 'text';
+        document.getElementById('content').classList.toggle('hidden', !isText);
+        document.getElementById('file').classList.toggle('hidden', isText);
+    });
+
+    async function submitUpload() {
+        const formData = new FormData(document.getElementById('uploadForm'));
+        const res = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        });
+        if (res.ok) {
+            alert('Upload successful!');
+            location.reload();
+        } else {
+            alert('Upload failed');
+        }
+    }
+
+    // Search
+    document.getElementById('search').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const cards = document.querySelectorAll('#uploadsGrid > div');
+        cards.forEach(card => {
+            card.style.display = card.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+        });
+    });
+</script>
+{% endblock %}

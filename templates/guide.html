@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Beginner Guide - DataForge{% endblock %}
+{% block content %}
+<div class="p-8 max-w-4xl mx-auto space-y-8">
+    <h1 class="text-4xl text-center animate-glow mb-8">Beginner Guide: Using DataForge API 💀</h1>
+    <section class="bg-black bg-opacity-50 p-6 rounded-lg">
+        <h2 class="text-2xl mb-4">1. Signup & Get API Key</h2>
+        <p>Visit <a href="/signup">Signup</a> or use API:</p>
+        <pre class="bg-gray-800 p-4 rounded mt-2 overflow-auto"><code>curl -X POST https://yourdomain.com/auth/signup \
+-H "Content-Type: application/json" \
+-d '{"name":"John","username":"john","email":"john@example.com","password":"pass123"}'</code></pre>
+        <p>Copy your API key from dashboard.</p>
+    </section>
+    <section class="bg-black bg-opacity-50 p-6 rounded-lg">
+        <h2 class="text-2xl mb-4">2. Upload Data</h2>
+        <p>Via dashboard or API:</p>
+        <pre class="bg-gray-800 p-4 rounded mt-2 overflow-auto"><code>curl -X POST https://yourdomain.com/api/upload \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-F "type=image" \
+-F "file=@/path/to/photo.jpg" \
+-F "share=true"</code></pre>
+    </section>
+    <section class="bg-black bg-opacity-50 p-6 rounded-lg">
+        <h2 class="text-2xl mb-4">3. Access Your Data</h2>
+        <p>GET with API key:</p>
+        <pre class="bg-gray-800 p-4 rounded mt-2 overflow-auto"><code>curl -X GET "https://yourdomain.com/api/v2/john?uploads=123" \
+-H "Authorization: Bearer YOUR_API_KEY"</code></pre>
+        <p>Response: <pre>{ "owner": "john", "type": "image", "file_url": "/uploads/123_john.png" }</pre></p>
+        <p>For shared links: Use /api/share/{id}?token=...</p>
+    </section>
+    <section class="bg-black bg-opacity-50 p-6 rounded-lg">
+        <h2 class="text-2xl mb-4">4. Real-Time Logs</h2>
+        <p>Connect via WebSocket:</p>
+        <pre class="bg-gray-800 p-4 rounded mt-2 overflow-auto"><code>const ws = new WebSocket('ws://yourdomain.com/ws/logs');
+ws.onmessage = (e) => console.log(e.data);</code></pre>
+    </section>
+    <section class="bg-black bg-opacity-50 p-6 rounded-lg">
+        <h2 class="text-2xl mb-4">5. Premium Upgrade</h2>
+        <p>Unlimited storage & features: ₹199/month. Contact <a href="https://wa.me/918011971924">WhatsApp +91 8011971924</a>.</p>
+    </section>
+    <p class="text-center mt-8"><a href="/dashboard" class="bg-blue-500 px-6 py-3 rounded">Back to Dashboard</a></p>
+</div>
+{% endblock %}
