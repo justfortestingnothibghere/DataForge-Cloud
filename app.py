@@ -1,16 +1,15 @@
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
-from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-import os
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 from database import Base, get_db
 import models  # Import after Base
 from middleware import AnalyticsMiddleware
-from utils import limiter  # Import limiter from utils
+from utils import limiter
+from config import templates  # Import templates from config
 from routes.auth import router as auth_router
 from routes.api import router as api_router
 from routes.admin import router as admin_router
@@ -32,10 +31,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Templates & Static
-templates = Jinja2Templates(directory="templates")
+# Static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
-os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Apply middleware
