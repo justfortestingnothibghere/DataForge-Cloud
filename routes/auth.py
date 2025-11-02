@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import uuid
-from ..app import get_db, create_access_token, get_password_hash
-from ..models import User
+from app import get_db, create_access_token, get_password_hash, verify_password
+from models import User
 
 router = APIRouter()
 
@@ -67,6 +67,6 @@ def me(current_user: User = Depends(get_current_user)):
 @router.post("/upgrade")
 def upgrade(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     current_user.is_premium = True
-    current_user.storage_limit = 999999999999  # Effectively unlimited
+    current_user.storage_limit = 999999999999
     db.commit()
     return {"message": "Upgraded to premium! Contact WhatsApp +91 8011971924 for payment confirmation."}
