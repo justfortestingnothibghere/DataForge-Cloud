@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pydantic
+python-multipart
+bcrypt
+pyjwt
+slowapi
+jinja2
+gunicorn
