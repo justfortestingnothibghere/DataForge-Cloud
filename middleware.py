@@ -1,7 +1,7 @@
 from fastapi import Request, Response
 from sqlalchemy.orm import Session
 import json
-from app import get_db  # Absolute import
+from database import get_db  # Import from database.py
 import models
 
 class AnalyticsMiddleware:
