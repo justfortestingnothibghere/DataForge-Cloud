@@ -1,12 +1,14 @@
-import uuid
 from fastapi import HTTPException, status, Request, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 import jwt
+import uuid
 from passlib.context import CryptContext
 from bcrypt import hashpw, gensalt, checkpw
 import os
 from datetime import datetime, timedelta
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from database import get_db
 import models
 
@@ -14,6 +16,9 @@ import models
 SECRET_KEY = os.getenv("SECRET_KEY", str(uuid.uuid4()))
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 # JWT utils
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
