@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 import os
-from ..app import templates, get_db, create_access_token, get_password_hash, get_current_user
-from ..models import User, Upload
+import uuid
+from app import templates, get_db, create_access_token, get_password_hash, get_current_user, verify_password
+from models import User, Upload
 
 router = APIRouter()
 
@@ -33,24 +34,28 @@ def signup_page(request: Request):
     return templates.TemplateResponse("signup.html", {"request": request})
 
 @router.post("/signup")
-async def signup_post(request: Request, db: Session = Depends(get_db)):
-    form = await request.form()
-    name = form.get("name")
-    username = form.get("username")
-    email = form.get("email")
-    password = form.get("password")
-    profile_file = form.get("profile_photo")
-    profile_photo = None
-    if profile_file and isinstance(profile_file, UploadFile):
-        item_id = int(uuid.uuid4().int % (10**9))
-        ext = profile_file.filename.split('.')[-1] if '.' in profile_file.filename else 'jpg'
-        profile_photo = f"uploads/profile_{item_id}.{ext}"
-        contents = await profile_file.read()
-        with open(profile_photo, "wb") as f:
-            f.write(contents)
-
+async def signup_post(
+    request: Request,
+    name: str = Form(...),
+    username: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    profile_photo: UploadFile = File(None),
+    db: Session = Depends(get_db)
+):
     if db.query(User).filter(User.username == username).first():
         return templates.TemplateResponse("signup.html", {"request": request, "error": "Username taken"})
+    if db.query(User).filter(User.email == email).first():
+        return templates.TemplateResponse("signup.html", {"request": request, "error": "Email taken"})
+    profile_photo_url = None
+    if profile_photo:
+        item_id = int(uuid.uuid4().int % (10**9))
+        ext = profile_photo.filename.split('.')[-1] if '.' in profile_photo.filename else 'jpg'
+        profile_photo_url = f"uploads/profile_{item_id}.{ext}"
+        contents = await profile_photo.read()
+        with open(profile_photo_url, "wb") as f:
+            f.write(contents)
+
     hashed_pw = get_password_hash(password)
     api_key = str(uuid.uuid4())
     new_user = User(
@@ -59,7 +64,7 @@ async def signup_post(request: Request, db: Session = Depends(get_db)):
         email=email,
         password_hash=hashed_pw,
         api_key=api_key,
-        profile_photo=profile_photo
+        profile_photo=profile_photo_url
     )
     db.add(new_user)
     db.commit()
@@ -79,7 +84,7 @@ def dashboard(
     storage_used = sum(os.path.getsize(f) for f in glob.glob(f"uploads/*_{current_user.id}_*") if os.path.exists(f))
     analytics_data = {
         "labels": ["Uploads", "API Calls"],
-        "datasets": [{"data": [len(uploads), 5]}]  # Placeholder; fetch from analytics
+        "datasets": [{"data": [len(uploads), 5]}]
     }
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
