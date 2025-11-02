@@ -6,7 +6,8 @@ import glob
 from datetime import datetime, timedelta
 import zipfile
 from io import BytesIO
-from app import get_db, get_current_user, api_key_auth
+from app import get_current_user, api_key_auth
+from database import get_db
 from models import Upload, User, Analytics
 
 router = APIRouter()
@@ -69,8 +70,6 @@ async def upload(
     details = json.dumps({"upload_id": new_upload.id, "type": type_})
     db.add(Analytics(user_id=current_user.id, event_type="upload", details=details))
     db.commit()
-    # WS notification
-    # Simulate broadcast (requires connected clients store)
     return {
         "success": True,
         "item_id": new_upload.id,
@@ -130,9 +129,8 @@ def get_analytics(current_user: User = Depends(get_current_user), db: Session = 
     uploads_count = db.query(Upload).filter(Upload.user_id == current_user.id).count()
     analytics = db.query(Analytics).filter(Analytics.user_id == current_user.id).all()
     storage_used = sum(os.path.getsize(f) for f in glob.glob(f"uploads/*_{current_user.id}_*") if os.path.exists(f))
-    # Sample data for chart
     labels = [a.event_type for a in analytics[-10:]]
-    counts = [1 for _ in labels]  # Dummy counts
+    counts = [1 for _ in labels]
     return {
         "uploads_count": uploads_count,
         "storage_used": storage_used,
