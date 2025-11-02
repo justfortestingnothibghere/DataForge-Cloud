@@ -12,7 +12,7 @@ import os
 import uuid
 from datetime import datetime, timedelta
 import jwt
-from passlib.context import CryptContext  # For bcrypt alternative if needed, but using bcrypt
+from passlib.context import CryptContext
 from bcrypt import hashpw, gensalt, checkpw
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -20,6 +20,10 @@ from slowapi.errors import RateLimitExceeded
 from pydantic import BaseModel
 import models
 from middleware import AnalyticsMiddleware
+from routes.auth import router as auth_router
+from routes.api import router as api_router
+from routes.admin import router as admin_router
+from routes.frontend import router as frontend_router
 
 # Env vars
 SECRET_KEY = os.getenv("SECRET_KEY", str(uuid.uuid4()))
@@ -114,13 +118,10 @@ async def api_key_auth(request: Request, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.api_key == api_key).first()
     if not user:
         raise HTTPException(status_code=403, detail="Invalid API key")
+    request.state.user = user  # Store for middleware
     return user
 
 # Include routers
-from routes.auth import router as auth_router
-from routes.api import router as api_router
-from routes.admin import router as admin_router
-from routes.frontend import router as frontend_router
 app.include_router(auth_router, prefix="/auth")
 app.include_router(api_router, prefix="/api")
 app.include_router(admin_router, prefix="/admin")
