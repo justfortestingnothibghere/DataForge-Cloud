@@ -6,7 +6,7 @@ import glob
 from datetime import datetime, timedelta
 import zipfile
 from io import BytesIO
-from app import get_current_user, api_key_auth
+from utils import get_current_user, api_key_auth
 from database import get_db
 from models import Upload, User, Analytics
 
