@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request  # Add Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import uuid
@@ -21,7 +21,7 @@ class UserLogin(BaseModel):
 
 @router.post("/signup")
 @limiter.limit("5/minute")
-def signup(request: Request, user: UserSignup, db: Session = Depends(get_db)):  # Add request: Request
+def signup(request: Request, user: UserSignup, db: Session = Depends(get_db)):
     if db.query(User).filter(User.username == user.username).first():
         raise HTTPException(status_code=400, detail="Username taken")
     if db.query(User).filter(User.email == user.email).first():
@@ -46,7 +46,7 @@ def signup(request: Request, user: UserSignup, db: Session = Depends(get_db)):  
 
 @router.post("/login")
 @limiter.limit("10/minute")
-def login(request: Request, user: UserLogin, db: Session = Depends(get_db)):  # Add request: Request
+def login(request: Request, user: UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.username == user.username).first()
     if not db_user or not verify_password(user.password, db_user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
