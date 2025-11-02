@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import uuid
-from app import create_access_token, get_password_hash, verify_password
+from utils import create_access_token, get_password_hash, verify_password, get_current_user
 from database import get_db
 from models import User
 
